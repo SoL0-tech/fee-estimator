@@ -9,7 +9,11 @@ export class FeeEstimatorServer {
 	private server?: http.Server
 	private estimator: FeeEstimator
 
-	constructor(port: number, estimator: FeeEstimator) {
+	constructor(
+		port: number,
+		express: () => express.Express,
+		estimator: FeeEstimator,
+	) {
 		this.app = express()
 		this.setupRoutes()
 		this.port = port

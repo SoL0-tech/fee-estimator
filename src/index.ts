@@ -1,5 +1,6 @@
 import { config } from 'dotenv'
 import Web3 from 'web3'
+import express from 'express'
 
 import { FeeEstimator } from './estimator'
 import { FeeEstimatorServer } from './server'
@@ -19,7 +20,7 @@ const web3 = new Web3(INFURA_WS_ENDPOINT)
 const estimator = new FeeEstimator(web3)
 
 // Initialize our Server
-const server = new FeeEstimatorServer(3030, estimator)
+const server = new FeeEstimatorServer(3030, express, estimator)
 server.listen()
 
 
