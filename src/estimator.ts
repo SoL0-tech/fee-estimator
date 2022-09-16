@@ -3,24 +3,36 @@ import { Subscription } from 'web3-core-subscriptions'
 import { BlockHeader } from 'web3-eth'
 
 export class FeeEstimator {
-	web3: Web3
-	latestFeeEstimate: number
-	subscription?: Subscription<BlockHeader>
+	private web3: Web3
+	private latestFeeEstimate: number = -1
+	private subscription?: Subscription<BlockHeader>
 
 	constructor(web3: Web3) {
 		this.web3 = web3
-		this.startSubscription()
-		this.latestFeeEstimate = 0 // TODO initialize from last block
-		// web3.eth.getBlock("latest", returnTransactionObjects] [, callback])
+		this.updateFeeEstimate()
 		this.startSubscription()
 	}
 
 	private async startSubscription() {
-		this.web3.eth.subscribe("newBlockHeaders", (error, log) => {
+		this.web3.eth.subscribe("newBlockHeaders", async (error, log) => {
 			if (error) {
-				console.log('Error in subscription callback:', error)
+				console.error('Error in subscription callback:', error)
 			}
-			console.log(log)
+
+			await this.updateFeeEstimate()
 		})
+	}
+
+	private async updateFeeEstimate() {
+		const blockData = await this.web3.eth.getBlock("latest", true)
+		const totalGasPrice = blockData.transactions
+			.reduce((total, transaction) => (
+				total + parseInt(transaction.gasPrice)
+			), 0)
+
+		const avgGas = totalGasPrice / blockData.transactions.length
+
+		console.log(`Updated fee estimate - ${(avgGas/(10**9)).toFixed(2)} GWei`)
+		this.latestFeeEstimate = avgGas
 	}
 }

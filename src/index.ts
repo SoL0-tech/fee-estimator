@@ -11,9 +11,8 @@ config()
 ensureConfigValue('INFURA_PROJECT_ID')
 ensureConfigValue('INFURA_WS_ENDPOINT')
 
-const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID
+// Initialize the web3 provider and client
 const INFURA_WS_ENDPOINT = process.env.INFURA_WS_ENDPOINT as string
-
 const web3 = new Web3(INFURA_WS_ENDPOINT)
 
 // Initialize our Fee Estimator controller
