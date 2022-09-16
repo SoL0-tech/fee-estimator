@@ -4,7 +4,7 @@ import { BlockHeader } from 'web3-eth'
 
 export class FeeEstimator {
 	private web3: Web3
-	private latestFeeEstimate: number = -1
+	private recentEstimates: number[] = []
 	private subscription?: Subscription<BlockHeader>
 
 	constructor(web3: Web3) {
@@ -14,10 +14,31 @@ export class FeeEstimator {
 	}
 
 	/**
-	 * @returns current fee estimate (in wei)
+	 * @returns fee estimate (in wei), using the
+	 * average of the last n blocks
 	 */
-	public getEstimate(): number {
-		return this.latestFeeEstimate
+	public getEstimate(n = 1): number {
+		if (!this.isReady()) {
+			throw new Error('Estimator not yet ready. Wait a bit and try again')
+		}
+
+		if (n > this.recentEstimates.length) {
+			throw new Error(`Last ${n} blocks not available. Max ${this.recentEstimates.length}.`)
+		}
+
+		const total = this.recentEstimates.slice(0, n).reduce((total, estimate) => (
+			total + estimate
+		), 0)
+
+		return total / n
+	}
+
+	/**
+	 * @returns true if the estimator has made its first estimate,
+	 * 					false otherwise
+	 */
+	public isReady(): boolean {
+		return this.recentEstimates.length > 0
 	}
 
 	/**
@@ -49,7 +70,40 @@ export class FeeEstimator {
 
 		const avgGas = totalGasPrice / blockData.transactions.length
 
-		console.log(`Updated fee estimate - ${(avgGas/(10**9)).toFixed(2)} GWei`)
-		this.latestFeeEstimate = avgGas
+		this.addEstimate(avgGas)
+		this.logEstimates()
+	}
+
+	/**
+	 * Inserts the given estimate at the beginning of the
+	 * estimates array and discards estimates older than max length
+	 */
+	private addEstimate(estimate: number): void {
+		const MAX_ESTIMATES_LENGTH = 5
+
+		const endIndex = Math.min(
+			MAX_ESTIMATES_LENGTH-1,
+			this.recentEstimates.length
+		)
+
+		this.recentEstimates = [
+			estimate,
+			...this.recentEstimates.slice(0, endIndex)
+		]
+	}
+
+	/**
+	 * Logs the avg(1), avg(5) and avg(30) estimates to the console
+	 */
+	private logEstimates(): void {
+		let avg: { [key: string]: string | null } = {}
+		for (let n of ['1', '5', '30']) {
+			try {
+				avg[n] = (this.getEstimate(parseInt(n))/(10**9)).toFixed(2)
+			} catch (e) {
+				avg[n] = null
+			}
+		}
+		console.log(`Fee estimates - ${avg['1']} GWei (last), ${avg['5']} Gwei (avg. 5), ${avg['30']} Gwei (avg. 30)`)
 	}
 }
