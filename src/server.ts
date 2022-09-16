@@ -1,16 +1,19 @@
 import express from 'express'
 import http from 'http'
 import { AddressInfo } from 'net'
+import { FeeEstimator } from './estimator'
 
 export class FeeEstimatorServer {
 	private app: express.Application
 	private port: number
 	private server?: http.Server
+	private estimator: FeeEstimator
 
-	constructor(port: number) {
+	constructor(port: number, estimator: FeeEstimator) {
 		this.app = express()
 		this.setupRoutes()
 		this.port = port
+		this.estimator = estimator
 	}
 
 	private setupRoutes() {
@@ -19,8 +22,10 @@ export class FeeEstimatorServer {
 							 `)
 		})
 
-		this.app.get('/feeEstimate', (req: express.Request, res: express.Response) => {
-
+		this.app.get('/fee-estimate', (req: express.Request, res: express.Response) => {
+			res.json({
+				gasFeeEstimate: this.estimator.getEstimate(),
+			})
 		})
 	}
 

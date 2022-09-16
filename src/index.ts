@@ -19,7 +19,7 @@ const web3 = new Web3(INFURA_WS_ENDPOINT)
 const estimator = new FeeEstimator(web3)
 
 // Initialize our Server
-const server = new FeeEstimatorServer(3030)
+const server = new FeeEstimatorServer(3030, estimator)
 server.listen()
 
 
