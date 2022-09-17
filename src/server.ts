@@ -1,39 +1,61 @@
-import express from 'express'
 import http from 'http'
 import { AddressInfo } from 'net'
-import { FeeEstimator } from './estimator'
+import {
+	IExpressApplication,
+	IFeeEstimator,
+	IFeeEstimatorServer,
+} from './interfaces'
 
-export class FeeEstimatorServer {
-	private app: express.Application
+/**
+ * Server for exposing the Estimator estimates to REST clients
+ */
+export class FeeEstimatorServer implements IFeeEstimatorServer {
+	private app: IExpressApplication
 	private port: number
 	private server?: http.Server
-	private estimator: FeeEstimator
+	private estimator: IFeeEstimator
 
 	constructor(
 		port: number,
-		express: () => express.Express,
-		estimator: FeeEstimator,
+		app: IExpressApplication,
+		estimator: IFeeEstimator,
 	) {
-		this.app = express()
+		this.app = app
 		this.setupRoutes()
 		this.port = port
 		this.estimator = estimator
 	}
 
-	private setupRoutes() {
-		this.app.get('/', (req: express.Request, res: express.Response) => {
+	/**
+	 * Sets up the routes for our server
+	 */
+	private setupRoutes(): void {
+		this.app.get('/', (req, res) => {
 			res.send(`Welcome to the app. Available endpoints:\n
-							 `)
+GET /fee-estimate  (responds with the average gas fee over the past 1, 5 and 30 blocks) `)
 		})
 
-		this.app.get('/fee-estimate', (req: express.Request, res: express.Response) => {
-			res.json({
-				gasFeeEstimate: this.estimator.getEstimate(),
-			})
+		this.app.get('/fee-estimate', (req, res) => {
+			let avg1 = 0, avg5 = 0, avg30 = 0
+			try {
+				avg1 = this.estimator.getEstimate()
+				avg5 = this.estimator.getEstimate(5)
+				avg30 = this.estimator.getEstimate(30)
+			} catch (e) {
+			} finally {
+				res.json({
+					gasFeeEstimate: avg1,
+					...(avg5 ? { gasFeeEstimateAvg5: avg5 } : {}),
+					...(avg30 ? { gasFeeEstimateAvg30: avg30 } : {}),
+				})
+			}
 		})
 	}
 
-	public listen() {
+	/**
+	 * Starts listening for incoming connections
+	 */
+	public listen(): void {
 		this.server = this.app.listen(
 			this.port,
 			() => {
@@ -43,7 +65,11 @@ export class FeeEstimatorServer {
 		)
 	}
 
-	public isListening() {
+	/**
+	 * @returns true if the server is listening, false otherwise
+	 */
+	public isListening(): boolean {
 		return !!this.server
 	}
 }
+

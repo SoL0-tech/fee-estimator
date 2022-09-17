@@ -1,16 +1,17 @@
 import { FeeEstimatorServer } from './server'
-import estimator from './mocks/estimator.mock'
 import {
+  estimator,
   mockExpress as express,
   mockGet,
   mockListen,
-} from './mocks/express.mock'
+} from './mocks'
+import { IFeeEstimatorServer } from './interfaces'
 
 const TEST_PORT = 30000
 
-let server: FeeEstimatorServer
+let server: IFeeEstimatorServer
 beforeEach(() => {
-  express().reset()
+  express.reset()
   server = new FeeEstimatorServer(TEST_PORT, express, estimator)
 })
 

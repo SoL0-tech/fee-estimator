@@ -9,7 +9,6 @@ import { FeeEstimatorServer } from './server'
 config()
 
 // Ensure the required config is set
-ensureConfigValue('INFURA_PROJECT_ID')
 ensureConfigValue('INFURA_WS_ENDPOINT')
 
 // Initialize the web3 provider and client
@@ -19,8 +18,8 @@ const web3 = new Web3(INFURA_WS_ENDPOINT)
 // Initialize our Fee Estimator controller
 const estimator = new FeeEstimator(web3)
 
-// Initialize our Server
-const server = new FeeEstimatorServer(3030, express, estimator)
+// Initialize our Server and listen for connections
+const server = new FeeEstimatorServer(3030, express(), estimator)
 server.listen()
 
 

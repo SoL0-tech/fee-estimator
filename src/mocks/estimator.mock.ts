@@ -1,6 +1,6 @@
-import { FeeEstimator } from '../estimator'
+import { IFeeEstimator } from '../interfaces'
 
 const mockEstimator = {
-} as any as FeeEstimator
+} as any as IFeeEstimator
 
 export = mockEstimator

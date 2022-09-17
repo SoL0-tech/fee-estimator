@@ -1,8 +1,8 @@
-import Web3 from 'web3'
 import { FeeEstimator } from './estimator'
-import web3 from './mocks/web3.mock'
+import { IFeeEstimator } from './interfaces'
+import { web3 } from './mocks'
 
-let estimator: FeeEstimator
+let estimator: IFeeEstimator
 beforeEach(() => {
 	estimator = new FeeEstimator(web3)
 })

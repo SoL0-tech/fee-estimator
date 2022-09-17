@@ -1,13 +1,19 @@
-import Web3 from 'web3'
 import { Subscription } from 'web3-core-subscriptions'
 import { BlockHeader } from 'web3-eth'
+import {
+	IFeeEstimator,
+	IWeb3,
+} from './interfaces'
 
-export class FeeEstimator {
-	private web3: Web3
+/**
+ * Controller for making, keeping, and providing an up-to-date fee estimates
+ */
+export class FeeEstimator implements IFeeEstimator {
+	private web3: IWeb3
 	private recentEstimates: number[] = []
 	private subscription?: Subscription<BlockHeader>
 
-	constructor(web3: Web3) {
+	constructor(web3: IWeb3) {
 		this.web3 = web3
 		this.updateFeeEstimate()
 		this.startSubscription()
@@ -15,7 +21,8 @@ export class FeeEstimator {
 
 	/**
 	 * @returns fee estimate (in wei), using the
-	 * average of the last n blocks
+	 *          average of the last n blocks
+	 * @throws Error if n > numberOfBlocksRead
 	 */
 	public getEstimate(n = 1): number {
 		if (!this.isReady()) {
@@ -104,6 +111,15 @@ export class FeeEstimator {
 				avg[n] = null
 			}
 		}
-		console.log(`Fee estimates - ${avg['1']} GWei (last), ${avg['5']} Gwei (avg. 5), ${avg['30']} Gwei (avg. 30)`)
+
+		let logLine = `Fee estimates - ${avg['1']} GWei (last)`
+    if (avg['5']) {
+			logLine += `, ${avg['5']} Gwei (avg. 5)`
+		}
+		if (avg['30']) {
+      logLine += `, ${avg['30']} Gwei (avg. 30)`
+		}
+
+		console.log(logLine)
 	}
 }

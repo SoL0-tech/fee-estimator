@@ -1,4 +1,4 @@
-import Web3 from "web3"
+import { IWeb3 } from "interfaces"
 
 let numGetBlockCalls: number
 let subscriptionTimer: NodeJS.Timer
@@ -70,6 +70,6 @@ const web3 = {
 			}
 		})
 	}
-} as any as Web3 & { reset: Function }
+} as any as IWeb3 & { reset: Function }
 
 export = web3 
