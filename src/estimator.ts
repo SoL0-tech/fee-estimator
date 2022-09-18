@@ -2,6 +2,7 @@ import { Subscription } from 'web3-core-subscriptions'
 import { BlockHeader } from 'web3-eth'
 import {
 	IFeeEstimator,
+	IFixedLengthQueue,
 	IWeb3,
 } from './interfaces'
 
@@ -10,11 +11,15 @@ import {
  */
 export class FeeEstimator implements IFeeEstimator {
 	private web3: IWeb3
-	private recentEstimates: number[] = []
+	private estimates: IFixedLengthQueue<number>
 	private subscription?: Subscription<BlockHeader>
 
-	constructor(web3: IWeb3) {
+	constructor(
+    web3: IWeb3,
+    estimatesQueue: IFixedLengthQueue<number>,
+  ) {
 		this.web3 = web3
+    this.estimates = estimatesQueue
 		this.updateFeeEstimate()
 		this.startSubscription()
 	}
@@ -29,11 +34,11 @@ export class FeeEstimator implements IFeeEstimator {
 			throw new Error('Estimator not yet ready. Wait a bit and try again')
 		}
 
-		if (n > this.recentEstimates.length) {
-			throw new Error(`Last ${n} blocks not available. Max ${this.recentEstimates.length}.`)
+		if (n > this.estimates.length()) {
+			throw new Error(`Last ${n} blocks not available. Max ${this.estimates.length()}.`)
 		}
 
-		const total = this.recentEstimates.slice(0, n).reduce((total, estimate) => (
+		const total = this.estimates.getRecent(n).reduce((total, estimate) => (
 			total + estimate
 		), 0)
 
@@ -45,7 +50,7 @@ export class FeeEstimator implements IFeeEstimator {
 	 * 					false otherwise
 	 */
 	public isReady(): boolean {
-		return this.recentEstimates.length > 0
+		return this.estimates.length() > 0
 	}
 
 	/**
@@ -81,22 +86,11 @@ export class FeeEstimator implements IFeeEstimator {
 		this.logEstimates()
 	}
 
-	/**
-	 * Inserts the given estimate at the beginning of the
-	 * estimates array and discards estimates older than max length
-	 */
+  /**
+   * Adds the estimate to the estimates data structure
+   */
 	private addEstimate(estimate: number): void {
-		const MAX_ESTIMATES_LENGTH = 5
-
-		const endIndex = Math.min(
-			MAX_ESTIMATES_LENGTH-1,
-			this.recentEstimates.length
-		)
-
-		this.recentEstimates = [
-			estimate,
-			...this.recentEstimates.slice(0, endIndex)
-		]
+    this.estimates.insert(estimate)
 	}
 
 	/**

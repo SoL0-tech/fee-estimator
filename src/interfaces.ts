@@ -12,6 +12,12 @@ export interface IFeeEstimatorServer {
   isListening(): boolean
 }
 
+export interface IFixedLengthQueue<T> {
+  getRecent(n?: number): T[]
+  insert(t: T): void
+  length(): number
+}
+
 
 // *** LIBS ***
 export interface IExpressApplication {

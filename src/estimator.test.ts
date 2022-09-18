@@ -1,10 +1,11 @@
 import { FeeEstimator } from './estimator'
 import { IFeeEstimator } from './interfaces'
+import { FixedLengthQueue } from './util'
 import { web3 } from './mocks'
 
 let estimator: IFeeEstimator
 beforeEach(() => {
-	estimator = new FeeEstimator(web3)
+	estimator = new FeeEstimator(web3, new FixedLengthQueue<number>(10))
 })
 
 afterEach(() => {
