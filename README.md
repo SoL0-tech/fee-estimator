@@ -21,3 +21,8 @@ Implements the Fee Estimator API.
 2. Run `npm run test` to run the unit tests
 
 
+Have tried to use sensible design patterns to implement and test the various components.
+Didn't implement any of the bonus metrics, as they weren't strictly necessary and I didnt want
+to spend more time than necessary on the assessment - I think this showcases enough.
+
+Hope you find the code clean and nice-to-read!
